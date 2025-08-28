@@ -1,0 +1,12 @@
+{
+  "name": "atlas-rs-demo-app",
+  "version": "0.1.0",
+  "private": true,
+  "main": "server.js",
+  "license": "Apache-2.0",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0"
+  }
+}
