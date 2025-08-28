@@ -1,5 +1,7 @@
 # atlas-rs
-Deploys a 5-node globally distributed Replica Set in MongoDB Atlas (GCP) and optional regional demo (GCS + Cloud Functions v2).
+Deploys a 5-node globally distributed Replica Set in MongoDB Atlas (GCP) and a regional demo (GCS + Cloud Functions v2).
+
+![alt text](image.png)
 
 ## Terraform Infrastructure
 
@@ -47,10 +49,15 @@ terraform plan
 terraform apply
 ```
 
-For MongoDB Employees, confirm with the InfoSecBot req you made the relevant GCP buckets public.
+
+### 3. Tear it down
+
+```bash
+cd terraform
+terraform destroy
+```
 
 ---
-
 
 ### App Demo GCP / Cloud Functions v2
 
@@ -60,28 +67,3 @@ Deploy a simple static HTML demo (GCS website in each region) that:
 * Inserts a random greeting with "Record Greeting" button
 * Lets user adjust polling interval (milliseconds; 20ms–10,000ms)
 * Uses `readPreference: nearest` (driver) so each function read hits a local secondary when possible
-
-### Demo Auto URI Generation
-
-The demo always creates its own least-privileged database user and constructs the MongoDB SRV URI from the cluster’s connection string. User-provided URIs are not accepted for the demo.
-
-Example `terraform.tfvars`:
-
-```hcl
- # no image/build required; functions are built from source
-```
-
-Single-apply workflow:
-
-1. terraform apply -> creates cluster, demo DB user, GCS static sites, and Cloud Functions demo.
-2. Outputs include `demo_site_urls`, `demo_api_urls`, and `demo_effective_mongodb_uri` (sensitive).
-3. In browser console set: `window.API_BASE='<function_url>'`.
-
-Functions read the MongoDB URI from an environment variable. Prefer Secret Manager / Workload Identity for production.
-
-Collection: Database `test`, Collection `test` (created automatically on first insert).
-
-### Demo Caveats
-
-* Connection pooling reused across container requests (persistent until eviction).
-* Avoid storing production creds in state; consider GCP Secret Manager.

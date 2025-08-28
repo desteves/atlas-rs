@@ -1,4 +1,4 @@
-RECYCLE_BIN/** */
+RECYCLE_*
 # Terraform local state & caches
 .terraform/
 *.tfstate
