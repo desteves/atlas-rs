@@ -36,7 +36,7 @@ You can create a dedicated Service Account or use your own login.
 export TF_VAR_gcp_project_id=
 gcloud auth application-default login
 gcloud config set project $TF_VAR_gcp_project_id
-gcloud services enable storage.googleapis.com run.googleapis.com cloudfunctions.googleapis.com cloudbuild.googleapis.com
+gcloud services enable serviceusage.googleapis.com storage.googleapis.com run.googleapis.com cloudfunctions.googleapis.com cloudbuild.googleapis.com --project $TF_VAR_gcp_project_id
 ```
 
 ### 2. Deploy Resources
@@ -49,8 +49,49 @@ terraform plan
 terraform apply
 ```
 
+For MongoDB Employees, acknowledge the InfoSec messages:
+![alt text](image-1.png)
 
-### 3. Tear it down
+### 3. Run Demos
+
+> [!WARNING]
+> **Open the `demo_site_urls` after each change in an Incognito Window to avoid a stale cached version!!**
+
+#### Localized Reads vs not so
+
+See the read-preference switch demo: `demos/read-preference-switch/README.md:1`
+
+#### Upgrade to MongoDB 8.0 while application is running.
+
+See the step-by-step Terraform demo: `demos/upgrade-mongodb-7-to-8/README.md:1`
+
+#### Convert Replica Set to One-Shard Cluster
+
+See the sharding upgrade demo: `demos/replicaset-to-one-shard/README.md:1`
+
+#### Test Resilience in Atlas
+
+- **Primary Failover**
+  Note the primary still resides in US Central due to the priorities
+- **Regional Outage**
+  Australia: R/W still happen
+  US: R only
+
+
+#### Safe to ignore Error(s) during Demos
+
+You can IGNORE the following:
+
+```bash
+Error: Provider produced inconsistent final plan
+│
+│ When expanding the plan for google_cloudfunctions2_function.api_au[0] to include new values learned so far during apply, provider "registry.terraform.io/hashicorp/google" produced an invalid new value for
+│ .service_config[0].environment_variables: new element "READ_PREFERENCE" has appeared.
+│
+│ This is a bug in the provider, which should be reported in the provider's own issue tracker.
+```
+
+### 4. Tear it down
 
 ```bash
 cd terraform

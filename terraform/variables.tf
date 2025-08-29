@@ -86,3 +86,13 @@ variable "atlas_demo_open_access" {
   description = "If true, add 0.0.0.0/0 to Atlas Project IP Access List so Cloud Functions can connect."
   default     = true
 }
+
+variable "demo_read_preference" {
+  type        = string
+  description = "Read preference for demo reads: one of primary, primaryPreferred, secondary, secondaryPreferred, nearest."
+  default     = "nearest"
+  validation {
+    condition     = contains(["primary","primaryPreferred","secondary","secondaryPreferred","nearest"], var.demo_read_preference)
+    error_message = "demo_read_preference must be one of primary, primaryPreferred, secondary, secondaryPreferred, nearest."
+  }
+}

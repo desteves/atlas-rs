@@ -14,7 +14,7 @@ locals {
 resource "mongodbatlas_advanced_cluster" "global_rs" {
   project_id          = local.project_id
   name                = var.cluster_name
-  cluster_type        = "REPLICASET"
+  cluster_type        = "REPLICASET"  # Change to SHARDED for one-shard demo
   backup_enabled      = var.cluster_backup_enabled
   pit_enabled         = var.cluster_backup_enabled
   termination_protection_enabled = false
@@ -22,7 +22,6 @@ resource "mongodbatlas_advanced_cluster" "global_rs" {
 
   replication_specs {
     zone_name = "Zone Uno"
-
     region_configs {
       provider_name = "GCP"
       region_name   = "CENTRAL_US"
@@ -154,6 +153,12 @@ locals {
   demo_app_dir        = "${path.module}/../demo-app"
 }
 
+# Shared random suffix to ensure globally-unique bucket names for the demo.
+resource "random_id" "demo_bucket_suffix" {
+  count       = local.demo_enabled ? 1 : 0
+  byte_length = 2 # 4 hex chars
+}
+
 resource "google_project_service" "services" {
   # Avoid sensitive gating in for_each by using only non-sensitive vars here.
   for_each = (length(var.gcp_project_id) > 0) ? toset([
@@ -170,7 +175,7 @@ resource "google_project_service" "services" {
 resource "google_storage_bucket" "demo_us" {
   count   = local.demo_enabled ? 1 : 0
   project = var.gcp_project_id
-  name    = local.demo_bucket_us
+  name    = "${local.demo_bucket_us}-${random_id.demo_bucket_suffix[0].hex}"
   location = var.gcp_primary_region
   uniform_bucket_level_access = true
   website {
@@ -182,7 +187,7 @@ resource "google_storage_bucket" "demo_us" {
 resource "google_storage_bucket" "demo_au" {
   count   = local.demo_enabled ? 1 : 0
   project = var.gcp_project_id
-  name    = local.demo_bucket_au
+  name    = "${local.demo_bucket_au}-${random_id.demo_bucket_suffix[0].hex}"
   location = var.gcp_secondary_region
   uniform_bucket_level_access = true
   website {
@@ -286,7 +291,8 @@ resource "google_cloudfunctions2_function" "api_us" {
 
   service_config {
     environment_variables = {
-      MONGODB_URI = nonsensitive(local.effective_mongodb_uri)
+      MONGODB_URI    = nonsensitive(local.effective_mongodb_uri)
+      READ_PREFERENCE = var.demo_read_preference
     }
     timeout_seconds = var.cloud_run_timeout_seconds
     ingress_settings = "ALLOW_ALL"
@@ -314,7 +320,8 @@ resource "google_cloudfunctions2_function" "api_au" {
 
   service_config {
     environment_variables = {
-      MONGODB_URI = nonsensitive(local.effective_mongodb_uri)
+      MONGODB_URI    = nonsensitive(local.effective_mongodb_uri)
+      READ_PREFERENCE = var.demo_read_preference
     }
     timeout_seconds = var.cloud_run_timeout_seconds
     ingress_settings = "ALLOW_ALL"

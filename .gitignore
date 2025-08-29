@@ -56,3 +56,5 @@ override.tf.json
 terraform.rc
 
 __R**
+
+./terraform/*.zip

@@ -19,7 +19,7 @@
 </head>
 <body>
   <h1>Latest Greeting (MongoDB Atlas Replica Set)</h1>
-  <p>This regional static site polls the nearest replica set member (readPreference=nearest) via GCP Cloud Functions (v2) using the MongoDB Node.js driver.</p>
+  <p>This regional static site polls a replica set member based on the configured readPreference (See th Console Output) via GCP Cloud Functions (v2) using the MongoDB Node.js driver.</p>
 
   <div class="latest" id="latestBox">Loading...</div>
 
@@ -40,21 +40,27 @@
 
   // API base: hardcoded to the regional function URL
   const API_BASE = "${api_base}";
+  const FLAG = API_BASE.includes('-demo-us-') ? '🇺🇸' : '🇦🇺';
 
   async function fetchLatest(){
     try {
+      const t0 = performance.now();
       const res = await fetch(API_BASE + '/latest');
       if(!res.ok){
         const text = await res.text();
         throw new Error('HTTP ' + res.status + ': ' + text.slice(0,120));
       }
       const json = await res.json();
+      const clientMs = Math.round(performance.now() - t0);
       if(json && json.latest) {
         const d = json.latest;
         latestBox.textContent = ((d.timestamp||'') + ' - ' + (d.message||''));
       } else {
         latestBox.textContent = 'No greetings yet';
       }
+      try {
+        console.log(`$${FLAG} [/latest] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  readPreference=$${json.readPreference||'n/a'} `);
+      } catch(_) {}
     } catch(e){
       latestBox.textContent = 'Error fetching latest: ' + e;
     }
@@ -65,14 +71,17 @@
     const message = greetings[Math.floor(Math.random()*greetings.length)] + ' from ' + (Intl.DateTimeFormat().resolvedOptions().timeZone || 'local');
     try {
       statusEl.textContent = 'Recording...';
+      const t0 = performance.now();
       const res = await fetch(API_BASE + '/greet', { method:'POST' });
       if(!res.ok){
         const text = await res.text();
         throw new Error('HTTP ' + res.status + ': ' + text.slice(0,120));
       }
       const json = await res.json();
+      const clientMs = Math.round(performance.now() - t0);
       if(json.insertedId){
         statusEl.textContent = 'Inserted ' + json.insertedId;
+        try { console.log(`$${FLAG} [/greet ] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  insertedId=$${json.insertedId} `); } catch(_) {}
         fetchLatest();
       } else {
         statusEl.textContent = 'Insert error';
