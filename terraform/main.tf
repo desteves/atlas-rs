@@ -258,7 +258,7 @@ data "archive_file" "gcf_src" {
 
 resource "google_storage_bucket" "gcf_src" {
   count                         = local.demo_enabled ? 1 : 0
-  name                          = lower(replace("${var.demo_bucket_prefix}-gcf-src", "_", "-"))
+  name                          = "${lower(replace("${var.demo_bucket_prefix}-gcf-src", "_", "-"))}-${random_id.demo_bucket_suffix[0].hex}"
   project                       = var.gcp_project_id
   location                      = var.gcp_primary_region
   uniform_bucket_level_access   = true
