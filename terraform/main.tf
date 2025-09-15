@@ -4,6 +4,8 @@
 
 locals {
   project_id = var.atlas_project_id
+  # Global random suffix to ensure resource name uniqueness
+  cluster_name_effective = "${var.cluster_name}-${random_id.demo_suffix.hex}"
 }
 
 #############################
@@ -13,7 +15,7 @@ locals {
 # The advanced cluster resource supports global multi-region replica sets.
 resource "mongodbatlas_advanced_cluster" "global_rs" {
   project_id          = local.project_id
-  name                = var.cluster_name
+  name                = local.cluster_name_effective
   cluster_type        = "REPLICASET"  # Change to SHARDED for one-shard demo
   backup_enabled      = var.cluster_backup_enabled
   pit_enabled         = var.cluster_backup_enabled
@@ -83,7 +85,7 @@ resource "mongodbatlas_advanced_cluster" "global_rs" {
 
 data "mongodbatlas_cluster" "conn_strings" {
   project_id = local.project_id
-  name       = var.cluster_name
+  name       = local.cluster_name_effective
   depends_on = [mongodbatlas_advanced_cluster.global_rs]
 }
 
@@ -98,7 +100,7 @@ provider "google" {
 
 data "mongodbatlas_cluster" "this" {
   project_id = local.project_id
-  name       = var.cluster_name
+  name       = local.cluster_name_effective
   depends_on = [mongodbatlas_advanced_cluster.global_rs]
 }
 
@@ -127,10 +129,10 @@ resource "mongodbatlas_database_user" "demo" {
   }
   labels {
     key   = "description"
-    value = "Demo user for cluster ${var.cluster_name}"
+    value = "Demo user for cluster ${local.cluster_name_effective}"
   }
   scopes {
-    name = var.cluster_name
+    name = local.cluster_name_effective
     type = "CLUSTER"
   }
   lifecycle {
@@ -153,9 +155,8 @@ locals {
   demo_app_dir        = "${path.module}/../demo-app"
 }
 
-# Shared random suffix to ensure globally-unique bucket names for the demo.
-resource "random_id" "demo_bucket_suffix" {
-  count       = local.demo_enabled ? 1 : 0
+# Shared random suffix to ensure globally-unique names across resources
+resource "random_id" "demo_suffix" {
   byte_length = 2 # 4 hex chars
 }
 
@@ -175,7 +176,7 @@ resource "google_project_service" "services" {
 resource "google_storage_bucket" "demo_us" {
   count   = local.demo_enabled ? 1 : 0
   project = var.gcp_project_id
-  name    = "${local.demo_bucket_us}-${random_id.demo_bucket_suffix[0].hex}"
+  name    = "${local.demo_bucket_us}-${random_id.demo_suffix.hex}"
   location = var.gcp_primary_region
   uniform_bucket_level_access = true
   website {
@@ -187,7 +188,7 @@ resource "google_storage_bucket" "demo_us" {
 resource "google_storage_bucket" "demo_au" {
   count   = local.demo_enabled ? 1 : 0
   project = var.gcp_project_id
-  name    = "${local.demo_bucket_au}-${random_id.demo_bucket_suffix[0].hex}"
+  name    = "${local.demo_bucket_au}-${random_id.demo_suffix.hex}"
   location = var.gcp_secondary_region
   uniform_bucket_level_access = true
   website {
@@ -207,7 +208,7 @@ resource "google_storage_bucket_object" "index_us" {
     {
       # template expects milliseconds
       refresh_default_ms      = var.demo_refresh_default_seconds * 1000
-      cluster_name            = var.cluster_name
+      cluster_name            = local.cluster_name_effective
       api_base                = google_cloudfunctions2_function.api_us[0].service_config[0].uri
     }
   )
@@ -223,7 +224,7 @@ resource "google_storage_bucket_object" "index_au" {
     "${path.module}/templates/index.html.tmpl",
     {
       refresh_default_ms      = var.demo_refresh_default_seconds * 1000
-      cluster_name            = var.cluster_name
+      cluster_name            = local.cluster_name_effective
       api_base                = google_cloudfunctions2_function.api_au[0].service_config[0].uri
     }
   )
@@ -258,7 +259,7 @@ data "archive_file" "gcf_src" {
 
 resource "google_storage_bucket" "gcf_src" {
   count                         = local.demo_enabled ? 1 : 0
-  name                          = "${lower(replace("${var.demo_bucket_prefix}-gcf-src", "_", "-"))}-${random_id.demo_bucket_suffix[0].hex}"
+  name                          = "${lower(replace("${var.demo_bucket_prefix}-gcf-src", "_", "-"))}-${random_id.demo_suffix.hex}"
   project                       = var.gcp_project_id
   location                      = var.gcp_primary_region
   uniform_bucket_level_access   = true
@@ -275,7 +276,7 @@ resource "google_storage_bucket_object" "gcf_src" {
 resource "google_cloudfunctions2_function" "api_us" {
   count    = local.demo_enabled ? 1 : 0
   project  = var.gcp_project_id
-  name     = "atlas-rs-demo-us"
+  name     = "atlas-rs-demo-us-${random_id.demo_suffix.hex}"
   location = var.gcp_primary_region
 
   build_config {
@@ -304,7 +305,7 @@ resource "google_cloudfunctions2_function" "api_us" {
 resource "google_cloudfunctions2_function" "api_au" {
   count    = local.demo_enabled ? 1 : 0
   project  = var.gcp_project_id
-  name     = "atlas-rs-demo-au"
+  name     = "atlas-rs-demo-au-${random_id.demo_suffix.hex}"
   location = var.gcp_secondary_region
 
   build_config {
