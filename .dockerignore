@@ -1,0 +1,16 @@
+# Reduce Docker build context
+.git
+.github
+__RECYCLE_BIN
+.DS_Store
+node_modules
+**/node_modules
+**/.terraform
+**/.terraform/*
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+image.png
+image-1.png

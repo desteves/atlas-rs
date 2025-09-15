@@ -81,11 +81,11 @@ variable "cloud_run_timeout_seconds" {
 
 # Allow the demo to connect to Atlas by opening project IP access list to the internet.
 # For production, set this to false and allow only specific egress IPs.
-variable "atlas_demo_open_access" {
-  type        = bool
-  description = "If true, add 0.0.0.0/0 to Atlas Project IP Access List so Cloud Functions can connect."
-  default     = true
-}
+# variable "atlas_demo_open_access" {
+#   type        = bool
+#   description = "If true, add 0.0.0.0/0 to Atlas Project IP Access List so Cloud Functions can connect."
+#   default     = true
+# }
 
 variable "demo_read_preference" {
   type        = string

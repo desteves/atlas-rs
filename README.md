@@ -17,6 +17,7 @@ This repository now contains a Terraform project (in `terraform/`) that provisio
 * Existing Atlas Project ID (set `atlas_project_id`)
 * `gcloud` CLI. [install link](https://cloud.google.com/sdk/docs/install)
 * GCP service account credentials (JSON) for optional demo resources (storage + cloudfunctions)
+* If using remote state on GCS backend: gcloud ADC or a service account JSON with access to a GCS bucket
 
 #### Atlas
 
@@ -51,6 +52,50 @@ terraform apply
 
 For MongoDB Employees, acknowledge the InfoSec messages:
 ![alt text](image-1.png)
+
+## Docker Tools Image (Atlas CLI + Terraform)
+
+- Build a local image that includes Terraform, the MongoDB Atlas CLI, copies this repo’s `terraform/` folder, and pre-downloads required providers.
+
+```bash
+docker build -t atlas-tf-tools .
+```
+
+- Run it with your Atlas and GCP credentials (example):
+
+```bash
+docker run -it --rm \
+  -e MONGODB_ATLAS_PUBLIC_KEY=$MONGODB_ATLAS_PUBLIC_KEY \
+  -e MONGODB_ATLAS_PRIVATE_KEY=$MONGODB_ATLAS_PRIVATE_KEY \
+  -e TF_VAR_atlas_project_id=$TF_VAR_atlas_project_id \
+  -e TF_VAR_gcp_project_id=$TF_VAR_gcp_project_id \
+  # Mount your GCP service account JSON to the path set in the image
+  -v $(pwd)/gcp-sa.json:/creds/gcp.json:ro \
+  atlas-tf-tools
+
+# inside the container
+terraform validate
+terraform plan
+terraform apply
+```
+
+Notes:
+- Providers are pre-fetched during the image build (via `terraform init -backend=false`).
+- The Atlas CLI (`atlas`) and Terraform (>= 1.6) are installed in the image.
+- If you use a remote backend, configure credentials at runtime rather than during build. The container exposes `GOOGLE_APPLICATION_CREDENTIALS=/creds/gcp.json`; mount your SA JSON there.
+
+## GCS Backend (Remote State)
+
+- This repo includes a preconfigured backend file for GCS using bucket `replication_track_terraform_backend` with prefix `atlas-rs/state`. Adjust if needed in `terraform/backend.hcl`.
+
+```bash
+cd terraform
+terraform init -migrate-state \
+  -backend-config=backend.hcl
+```
+
+- Required keys: `bucket`, `prefix` (already set in `terraform/backend.hcl`).
+- Auth options: Application Default Credentials (ADC) via `gcloud auth application-default login`, or set `credentials` in the backend file to a service account JSON.
 
 ### 3. Run Demos
 

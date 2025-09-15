@@ -20,10 +20,9 @@ terraform {
     }
   }
 
-  # Uncomment & configure a remote backend (recommended for teamwork)
-  # Example (GCS):
-  # backend "gcs" {
-  #   bucket  = "your-tf-state-bucket"
-  #   prefix  = "atlas-rs/state"
-  # }
+  # Remote backend (GCS). Configure via -backend-config or backend.hcl.
+  # Example usage:
+  #   terraform init \
+  #     -backend-config=backend.hcl
+  backend "gcs" {}
 }
