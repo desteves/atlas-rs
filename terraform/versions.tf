@@ -20,9 +20,6 @@ terraform {
     }
   }
 
-  # Remote backend (GCS). Configure via -backend-config or backend.hcl.
-  # Example usage:
-  #   terraform init \
-  #     -backend-config=backend.hcl
-  backend "gcs" {}
+  # Backend: Uses local state by default.
+  # To enable a remote backend, add a backend block here and re-run `terraform init`.
 }

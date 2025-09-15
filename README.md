@@ -17,7 +17,7 @@ This repository now contains a Terraform project (in `terraform/`) that provisio
 * Existing Atlas Project ID (set `atlas_project_id`)
 * `gcloud` CLI. [install link](https://cloud.google.com/sdk/docs/install)
 * GCP service account credentials (JSON) for optional demo resources (storage + cloudfunctions)
-* If using remote state on GCS backend: gcloud ADC or a service account JSON with access to a GCS bucket
+* (Optional) Remote state: you can configure a backend later (S3, GCS, etc.). By default this project uses local state.
 
 #### Atlas
 
@@ -84,18 +84,9 @@ Notes:
 - The Atlas CLI (`atlas`) and Terraform (>= 1.6) are installed in the image.
 - If you use a remote backend, configure credentials at runtime rather than during build. The container exposes `GOOGLE_APPLICATION_CREDENTIALS=/creds/gcp.json`; mount your SA JSON there.
 
-## GCS Backend (Remote State)
+## Backend (State)
 
-- This repo includes a preconfigured backend file for GCS using bucket `replication_track_terraform_backend` with prefix `atlas-rs/state`. Adjust if needed in `terraform/backend.hcl`.
-
-```bash
-cd terraform
-terraform init -migrate-state \
-  -backend-config=backend.hcl
-```
-
-- Required keys: `bucket`, `prefix` (already set in `terraform/backend.hcl`).
-- Auth options: Application Default Credentials (ADC) via `gcloud auth application-default login`, or set `credentials` in the backend file to a service account JSON.
+- By default, Terraform uses local state in the `terraform/` directory. If you want remote state (e.g., GCS or S3), add a backend block in `terraform/versions.tf` and run `terraform init` to configure/migrate state.
 
 ### 3. Run Demos
 
