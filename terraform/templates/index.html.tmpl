@@ -59,7 +59,7 @@
         latestBox.textContent = 'No greetings yet';
       }
       try {
-        console.log(`$${FLAG} [/latest] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  readPreference=$${json.readPreference||'n/a'} `);
+        console.log(new Date().toLocaleString(), `: $${FLAG} [/latest] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  readPreference=$${json.readPreference||'n/a'} `);
       } catch(_) {}
     } catch(e){
       latestBox.textContent = 'Error fetching latest: ' + e;
@@ -81,7 +81,7 @@
       const clientMs = Math.round(performance.now() - t0);
       if(json.insertedId){
         statusEl.textContent = 'Inserted ' + json.insertedId;
-        try { console.log(`$${FLAG} [/greet ] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  insertedId=$${json.insertedId} `); } catch(_) {}
+        try { console.log(new Date().toLocaleString(), `: $${FLAG} [/greet ] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  insertedId=$${json.insertedId} `); } catch(_) {}
         fetchLatest();
       } else {
         statusEl.textContent = 'Insert error';
