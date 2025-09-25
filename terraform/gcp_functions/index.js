@@ -10,8 +10,8 @@ async function getClient(){
 }
 const allowedReadPrefs = new Set(['primary','primaryPreferred','secondary','secondaryPreferred','nearest']);
 function getReadPreference(){
-  const rp = (process.env.READ_PREFERENCE || 'nearest').trim();
-  return allowedReadPrefs.has(rp) ? rp : 'nearest';
+  const rp = (process.env.READ_PREFERENCE || 'primary').trim();
+  return allowedReadPrefs.has(rp) ? rp : 'primary';
 }
 
 exports.handler = async (req, res) => {

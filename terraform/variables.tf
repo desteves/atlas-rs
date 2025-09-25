@@ -90,7 +90,7 @@ variable "cloud_run_timeout_seconds" {
 variable "demo_read_preference" {
   type        = string
   description = "Read preference for demo reads: one of primary, primaryPreferred, secondary, secondaryPreferred, nearest."
-  default     = "nearest"
+  default     = "primary"
   validation {
     condition     = contains(["primary","primaryPreferred","secondary","secondaryPreferred","nearest"], var.demo_read_preference)
     error_message = "demo_read_preference must be one of primary, primaryPreferred, secondary, secondaryPreferred, nearest."
