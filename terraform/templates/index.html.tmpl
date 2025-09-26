@@ -42,18 +42,6 @@
   const API_BASE = "${api_base}";
   const FLAG = API_BASE.includes('-demo-us-') ? '🇺🇸' : '🇦🇺';
 
-  function describeError(err) {
-    if (!err) return 'Unknown error';
-    const msg = (err && err.message) ? err.message : String(err);
-    if (/failed to fetch/i.test(msg) || /networkerror/i.test(msg)) {
-      return 'Request failed before the Cloud Function responded (timeout or CORS)';
-    }
-    if (/upstream timeout/i.test(msg)) {
-      return 'Cloud Function timed out talking to MongoDB';
-    }
-    return msg;
-  }
-
   async function fetchLatest(){
     try {
       const t0 = performance.now();
@@ -74,9 +62,7 @@
         console.log(new Date().toLocaleString(), `: $${FLAG} [/latest] dbMs=$${json.dbMs ?? 'n/a'} clientMs=$${clientMs}ms  readPreference=$${json.readPreference||'n/a'} `);
       } catch(_) {}
     } catch(e){
-      const detail = describeError(e);
-      latestBox.textContent = 'Error fetching latest: ' + detail;
-      statusEl.textContent = 'Latest fetch failed: ' + detail;
+      latestBox.textContent = 'Error fetching latest: ' + e;
     }
   }
 
@@ -101,7 +87,7 @@
         statusEl.textContent = 'Insert error';
       }
     } catch(e){
-      statusEl.textContent = 'Insert failed: ' + describeError(e);
+      statusEl.textContent = 'Error: ' + e;
     }
   }
 

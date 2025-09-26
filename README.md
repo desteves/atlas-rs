@@ -101,6 +101,10 @@ See the read-preference switch demo: `demos/read-preference-switch/README.md:1`
 
 See the step-by-step Terraform demo: `demos/upgrade-mongodb-7-to-8/README.md:1`
 
+#### Convert Replica Set to One-Shard Cluster
+
+See the sharding upgrade demo: `demos/replicaset-to-one-shard/README.md:1`
+
 #### Test Resilience in Atlas
 
 - **Primary Failover**
@@ -108,12 +112,6 @@ See the step-by-step Terraform demo: `demos/upgrade-mongodb-7-to-8/README.md:1`
 - **Regional Outage**
   Australia: R/W still happen
   US: R only
-
-
-#### Convert Replica Set to One-Shard Cluster
-
-See the sharding upgrade demo: `demos/replicaset-to-one-shard/README.md:1`
-
 
 
 #### Safe to ignore Error(s) during Demos
