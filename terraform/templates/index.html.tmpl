@@ -8,6 +8,14 @@
     body { font-family: system-ui, Arial, sans-serif; margin: 2rem; max-width: 760px; }
     h1 { font-size: 1.4rem; }
     .latest { padding: 1rem; border: 1px solid #ccc; border-radius: 6px; background: #fafafa; min-height: 3rem; }
+
+    .controls {  
+        display: flex;  
+        justify-content: space-between;  
+        align-items: center;  
+        margin-top: 1rem;  
+    }
+
     label { display:block; margin-top:1rem; font-weight:600; }
     input[type=number]{ width:6rem; }
     button { margin-top:1rem; padding:.6rem 1rem; border:1px solid #2b5; background:#2d7; color:#fff; border-radius:4px; cursor:pointer; }
@@ -23,7 +31,27 @@
 
   <div class="latest" id="latestBox">Loading...</div>
 
-  <label>Refresh Interval (ms): <input id="intervalInput" type="number" min="20" max="10000" step="10" value="${refresh_default_ms}" /></label>
+  <!--<table><tr>
+  <td><label>Refresh Interval (ms): <input id="intervalInput" type="number" min="20" max="10000" step="10" value="${refresh_default_ms}" /></label></td>
+  <td><label>Read Preference: <input id="readPreference" type="number" min="20" max="10000" step="10" value="${readPreference}" /></label></td>
+  </tr></table>-->
+
+  <div class="controls">  
+    <label>Refresh Interval (ms):  
+        <input id="intervalInput" type="number" min="20" max="10000" step="10" value="${refresh_default_ms}">  
+    </label>  
+    
+    <label>Read Preference:  
+    <select id="readPreference">  
+      <option value="primary" selected>primary</option>  
+      <option value="primaryPreferred">primaryPreferred</option>  
+      <option value="secondary">secondary</option>  
+      <option value="secondaryPreferred">secondaryPreferred</option>  
+      <option value="nearest">nearest</option>  
+    </select>  
+  </label>   
+  </div> 
+
   <button id="recordBtn">Record Greeting</button>
 
   <p id="status"></p>
@@ -68,7 +96,8 @@
     const timeoutId = setTimeout(() => controller.abort(), CLIENT_FETCH_TIMEOUT_MS);
     try {
       const t0 = performance.now();
-      const res = await fetch(API_BASE + '/latest', {
+      const rp = document.getElementById('readPreference')
+      const res = await fetch(API_BASE + '/latest?rp=' + rp, {
         signal: controller.signal,
         cache: 'no-store',
       });

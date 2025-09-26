@@ -33,8 +33,8 @@ async function getClient(){
   }
   return cached;
 }
-const allowedReadPrefs = new Set(['primary','primaryPreferred','secondary','secondaryPreferred','nearest']);
-function getReadPreference(){
+const allowedReadPrefs = new Set(['primary', 'primaryPreferred', 'secondary', 'secondaryPreferred', 'nearest']);
+function getReadPreference() {
   const rp = (process.env.READ_PREFERENCE || 'primary').trim();
   return allowedReadPrefs.has(rp) ? rp : 'primary';
 }
@@ -49,16 +49,24 @@ exports.handler = async (req, res) => {
     const client = await getClient();
     const coll = client.db('test').collection('test');
     const path = (req.path || req.url || '/');
-    const rp = getReadPreference();
+    // Default read preference  
+    let rp = 'primary';
     if(req.method==='GET' && (path === '/latest' || path === '/' || path.startsWith('/latest'))){
-      const t0 = Date.now();
-      const doc = await coll.find({}, { readPreference: rp }).sort({ timestamp:-1 }).limit(1).next();
-      const dbMs = Date.now() - t0;
-      res.status(200).json({ latest: doc || null, readPreference: rp, dbMs: dbMs }); return;
+      // Look for rp in query string, e.g. /latest?rp=secondary  
+      const queryRp = (req.query && req.query.rp) ? String(req.query.rp).trim() : '';
+      if (allowedReadPrefs.has(queryRp)) {
+        rp = queryRp;
+      }
+      if (path === '/latest' || path === '/' || path.startsWith('/latest')) {
+        const t0 = Date.now();
+        const doc = await coll.find({}, { readPreference: rp }).sort({ timestamp: -1 }).limit(1).next();
+        const dbMs = Date.now() - t0;
+        res.status(200).json({ latest: doc || null, readPreference: rp, dbMs: dbMs }); return;
+      }
     }
-    if(req.method==='POST' && (path === '/greet' || path.startsWith('/greet'))){
-      const greetings=['Hello','Hi','Gday','Hola','Bonjour','Ciao','Kia Ora','Namaste'];
-      const message = greetings[Math.floor(Math.random()*greetings.length)] + ' from Cloud Function';
+    if (req.method === 'POST' && (path === '/greet' || path.startsWith('/greet'))) {
+      const greetings = ['Hello', 'Hi', 'Gday', 'Hola', 'Bonjour', 'Ciao', 'Kia Ora', 'Namaste'];
+      const message = greetings[Math.floor(Math.random() * greetings.length)] + ' from Cloud Function';
       const now = new Date().toISOString();
       const t0 = Date.now();
       const r = await coll.insertOne({ message, timestamp: now });
