@@ -1,52 +1,15 @@
 const { MongoClient } = require('mongodb');
 
-const DEFAULT_OPERATION_TIMEOUT_MS = 8000;
-const MAX_OPERATION_TIMEOUT_MS = 9000;
-const DEFAULT_ALLOWED_ORIGINS = [
-  'https://storage.googleapis.com',
-];
-
-const configuredTimeout = Number.parseInt(process.env.OPERATION_TIMEOUT_MS || process.env.MONGODB_TIMEOUT_MS || '', 10);
-const operationTimeoutMs = Math.max(
-  2000,
-  Math.min(Number.isFinite(configuredTimeout) ? configuredTimeout : DEFAULT_OPERATION_TIMEOUT_MS, MAX_OPERATION_TIMEOUT_MS)
-);
-
-const allowAnyOrigin = process.env.CORS_ALLOW_ANY === '1';
-const allowedOriginSet = new Set([
-  ...DEFAULT_ALLOWED_ORIGINS,
-  ...String(process.env.CORS_ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0),
-]);
-
 let cached;
 
-function isStorageOrigin(origin) {
-  return Boolean(origin && origin.endsWith('.storage.googleapis.com'));
-}
-
-function resolveAllowedOrigin(origin) {
-  if (allowAnyOrigin) {
-    return '*';
-  }
-  if (origin && (allowedOriginSet.has(origin) || isStorageOrigin(origin))) {
-    return origin;
-  }
-  if (allowAnyOrigin || allowedOriginSet.has('*')) {
-    return '*';
-  }
-  return allowedOriginSet.values().next().value || '*';
-}
-
-function applyCors(req, res) {
-  const origin = req.get('Origin');
-  res.set('Vary', 'Origin');
-  res.set('Access-Control-Allow-Origin', resolveAllowedOrigin(origin));
+function applyCors(res) {
+  res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.set('Access-Control-Allow-Headers', req.get('Access-Control-Request-Headers') || 'Content-Type, Accept');
+  res.set('Access-Control-Allow-Headers', '*');
   res.set('Access-Control-Max-Age', '3600');
+  res.set('Cache-Control', 'no-store, max-age=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
 }
 
 function isTimeoutError(err) {
@@ -62,9 +25,9 @@ async function getClient(){
     const uri = process.env.MONGODB_URI; if(!uri) throw new Error('MONGODB_URI not set');
     const client = new MongoClient(uri,{
       maxPoolSize:5,
-      serverSelectionTimeoutMS: operationTimeoutMs,
-      connectTimeoutMS: operationTimeoutMs,
-      socketTimeoutMS: operationTimeoutMs,
+      heartbeatFrequencyMS: 2000,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
     });
     cached = client.connect();
   }
@@ -77,7 +40,8 @@ function getReadPreference() {
 }
 
 exports.handler = async (req, res) => {
-  applyCors(req, res);
+  applyCors(res);
+
   if (req.method === 'OPTIONS') {
     return res.status(204).send('');
   }
@@ -85,11 +49,9 @@ exports.handler = async (req, res) => {
     const client = await getClient();
     const coll = client.db('test').collection('test');
     const path = (req.path || req.url || '/');
-
     // Default read preference  
     let rp = 'primary';
-
-    if (req.method === 'GET') {
+    if(req.method==='GET' && (path === '/latest' || path === '/' || path.startsWith('/latest'))){
       // Look for rp in query string, e.g. /latest?rp=secondary  
       const queryRp = (req.query && req.query.rp) ? String(req.query.rp).trim() : '';
       if (allowedReadPrefs.has(queryRp)) {
@@ -107,7 +69,7 @@ exports.handler = async (req, res) => {
       const message = greetings[Math.floor(Math.random() * greetings.length)] + ' from Cloud Function';
       const now = new Date().toISOString();
       const t0 = Date.now();
-      const r = await coll.insertOne({ message, timestamp: now }, { maxTimeMS: operationTimeoutMs });
+      const r = await coll.insertOne({ message, timestamp: now });
       const dbMs = Date.now() - t0;
       res.status(200).json({ insertedId: r.insertedId, message, timestamp: now, dbMs }); return;
     }

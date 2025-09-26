@@ -69,9 +69,14 @@
   // API base: hardcoded to the regional function URL
   const API_BASE = "${api_base}";
   const FLAG = API_BASE.includes('-demo-us-') ? '🇺🇸' : '🇦🇺';
+  const CLIENT_FETCH_TIMEOUT_MS = 4500;
+  let latestFetchInFlight = false;
 
   function describeError(err) {
     if (!err) return 'Unknown error';
+    if (err.name === 'AbortError') {
+      return 'Browser cancelled request (client timeout)';
+    }
     const msg = (err && err.message) ? err.message : String(err);
     if (/failed to fetch/i.test(msg) || /networkerror/i.test(msg)) {
       return 'Request failed before the Cloud Function responded (timeout or CORS)';
@@ -83,10 +88,29 @@
   }
 
   async function fetchLatest(){
+    if (latestFetchInFlight) {
+      return;
+    }
+    latestFetchInFlight = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CLIENT_FETCH_TIMEOUT_MS);
     try {
       const t0 = performance.now();
       const rp = document.getElementById('readPreference')
-      const res = await fetch(API_BASE + '/latest?rp=' + rp);
+      const res = await fetch(API_BASE + '/latest?rp=' + rp, {
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+      if (res.status === 504) {
+        const text = (await res.text()).slice(0, 200);
+        const detail = /upstream timeout/i.test(text)
+          ? 'Cloud Function timed out talking to MongoDB'
+          : 'Request hit a gateway timeout';
+        const message = 'Latest fetch timed out: ' + detail;
+        latestBox.textContent = message;
+        statusEl.textContent = message;
+        return;
+      }
       if(!res.ok){
         const text = await res.text();
         throw new Error('HTTP ' + res.status + ': ' + text.slice(0,120));
@@ -106,6 +130,9 @@
       const detail = describeError(e);
       latestBox.textContent = 'Error fetching latest: ' + detail;
       statusEl.textContent = 'Latest fetch failed: ' + detail;
+    } finally {
+      clearTimeout(timeoutId);
+      latestFetchInFlight = false;
     }
   }
 
