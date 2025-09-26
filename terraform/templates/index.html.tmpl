@@ -91,7 +91,7 @@
     const timeoutId = setTimeout(() => controller.abort(), CLIENT_FETCH_TIMEOUT_MS);
     try {
       const t0 = performance.now();
-      const rp = document.getElementById('readPreference');
+      const rp = document.getElementById('readPreference').value;
       const res = await fetch(API_BASE + '/latest?rp=' + rp, {
         signal: controller.signal,
         cache: 'no-store',
