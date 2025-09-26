@@ -85,7 +85,7 @@
   async function fetchLatest(){
     try {
       const t0 = performance.now();
-      const rp = document.getElementById('readPreference')
+      const rp = document.getElementById('readPreference');
       const res = await fetch(API_BASE + '/latest?rp=' + rp);
       if(!res.ok){
         const text = await res.text();
