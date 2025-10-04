@@ -1,8 +1,3 @@
-output "project_id" {
-  value       = local.project_id
-  description = "Atlas Project ID in use (existing)"
-}
-
 output "cluster_name" {
   value       = mongodbatlas_advanced_cluster.global_rs.name
   description = "Cluster name"

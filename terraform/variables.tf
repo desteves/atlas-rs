@@ -33,22 +33,4 @@ variable "mongo_db_major_version" {
   default     = "7.0"
 }
 
-variable "aws_primary_region" {
-  type        = string
-  description = "Primary AWS region (e.g. us-east1)."
-  default     = "us-east-1"
-}
-
-variable "aws_secondary_region" {
-  type        = string
-  description = "Secondary AWS region (e.g. us-east-2)."
-  default     = "us-east-2"
-}
-
-variable "aws_readonly_region" {
-  type        = string
-  description = "Read-only AWS region (e.g. ap-southeast-2)."
-  default     = "ap-southeast-2"
-}
-
 
