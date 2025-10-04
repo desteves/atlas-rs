@@ -23,6 +23,7 @@ resource "mongodbatlas_advanced_cluster" "global_rs" {
   mongo_db_major_version         = var.mongo_db_major_version
 
   replication_specs {
+    num_shards = 1
     zone_name = "Zone Uno"
     region_configs {
       provider_name = "AWS"
@@ -88,16 +89,6 @@ resource "mongodbatlas_advanced_cluster" "global_rs" {
     }
   }
 }
-
-# Open Atlas IP Access List for the demo so Cloud Functions (with ephemeral egress IPs)
-# can reach the cluster over the public internet. This is gated by a variable and
-# should be disabled or replaced with specific NAT IPs for production.
-# resource "mongodbatlas_project_ip_access_list" "demo_open" {
-#  count      = var.atlas_demo_open_access && local.demo_enabled ? 1 : 0
-#  project_id = local.project_id
-#  cidr_block = "0.0.0.0/0"
-#  comment    = "Demo: allow access from anywhere for Cloud Functions gen2"
-# }
 
 
 #############################
