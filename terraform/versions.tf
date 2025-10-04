@@ -6,10 +6,6 @@ terraform {
       source  = "mongodb/mongodbatlas"
       version = "~> 1.19" # adjust as needed
     }
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.0"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"

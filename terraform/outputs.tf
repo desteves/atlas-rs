@@ -19,19 +19,3 @@ output "demo_effective_mongodb_uri" {
   description = "MongoDB URI used by the demo (auto-generated from cluster SRV + demo user)."
   sensitive   = true
 }
-
-output "demo_site_urls" {
-  value = try({
-    us = "https://storage.googleapis.com/${google_storage_bucket.demo_us[0].name}/index.html",
-    au = "https://storage.googleapis.com/${google_storage_bucket.demo_au[0].name}/index.html"
-  }, null)
-  description = "Public GCS static site URLs (null if demo disabled)."
-}
-
-output "demo_api_urls" {
-  value = try({
-    us = google_cloudfunctions2_function.api_us[0].service_config[0].uri,
-    au = google_cloudfunctions2_function.api_au[0].service_config[0].uri
-  }, null)
-  description = "Regional Cloud Functions v2 HTTP endpoints (null if demo disabled)."
-}
