@@ -23,7 +23,6 @@ resource "mongodbatlas_advanced_cluster" "global_rs" {
   mongo_db_major_version         = var.mongo_db_major_version
 
   replication_specs {
-    num_shards = 1
     zone_name = "Zone Uno"
     region_configs {
       provider_name = "AWS"
