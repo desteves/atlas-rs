@@ -14,79 +14,72 @@ locals {
 
 # The advanced cluster resource supports global multi-region replica sets.
 resource "mongodbatlas_advanced_cluster" "global_rs" {
-  project_id          = local.project_id
-  name                = local.cluster_name_effective
-  cluster_type        = "REPLICASET"  # Change to SHARDED for one-shard demo
-  backup_enabled      = var.cluster_backup_enabled
-  pit_enabled         = var.cluster_backup_enabled
+  project_id                     = local.project_id
+  name                           = local.cluster_name_effective
+  cluster_type                   = "REPLICASET" # Change to SHARDED for one-shard demo
+  backup_enabled                 = var.cluster_backup_enabled
+  pit_enabled                    = var.cluster_backup_enabled
   termination_protection_enabled = false
   mongo_db_major_version         = var.mongo_db_major_version
 
-  replication_specs {
-    zone_name = "Zone Uno"
-    region_configs {
-      provider_name = "AWS"
-      region_name   = "US_EAST_1"
-      priority      = 7
-
-      electable_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 3
-      }
-
-      read_only_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 0
-      }
-
-      analytics_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 0
-      }
+  replication_specs = [
+    {
+      zone_name = "Zone Uno"
+      region_configs = [
+        {
+          provider_name = "AWS"
+          region_name   = "US_EAST_1"
+          priority      = 7
+          electable_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 3
+          }
+          read_only_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 0
+          }
+          analytics_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 0
+          }
+        },
+        {
+          provider_name = "AWS"
+          region_name   = "US_EAST_2"
+          priority      = 6
+          electable_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 2
+          }
+          read_only_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 0
+          }
+          analytics_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 0
+          }
+        },
+        {
+          provider_name = "AWS"
+          region_name   = "AP_SOUTHEAST_2"
+          priority      = 0
+          electable_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 0
+          }
+          read_only_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 1
+          }
+          analytics_specs = {
+            instance_size = var.cluster_instance_size
+            node_count    = 0
+          }
+        }
+      ]
     }
-
-    region_configs {
-      provider_name = "AWS"
-      region_name   = "US_EAST_2"
-      priority      = 6
-
-      electable_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 2
-      }
-
-      read_only_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 0
-      }
-
-      analytics_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 0
-      }
-    }
-
-    region_configs {
-      provider_name = "AWS"
-      region_name   = "AP_SOUTHEAST_2"
-      priority      = 0
-
-      electable_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 0
-      }
-
-      read_only_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 1
-      }
-
-      analytics_specs {
-        instance_size = var.cluster_instance_size
-        node_count    = 0
-      }
-    }
-  }
+  ]
 }
 
 
