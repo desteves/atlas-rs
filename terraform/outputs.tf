@@ -5,6 +5,6 @@ output "cluster_name" {
 
 output "standard_connection_string" {
   value       = try(data.mongodbatlas_advanced_cluster.conn_strings.connection_strings[0].standard_srv, null)
-  description = "Base SRV connection string without credentials (available after first apply)."
-  sensitive   = true
+  description = "Base SRV connection string without credentials"
+  sensitive   = false
 }
