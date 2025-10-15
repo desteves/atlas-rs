@@ -87,7 +87,7 @@ resource "mongodbatlas_advanced_cluster" "global_rs" {
 # Outputs / Helpful Data
 #############################
 
-data "mongodbatlas_cluster" "conn_strings" {
+data "mongodbatlas_advanced_cluster" "conn_strings" {
   project_id = local.project_id
   name       = local.cluster_name_effective
   depends_on = [mongodbatlas_advanced_cluster.global_rs]
@@ -95,7 +95,7 @@ data "mongodbatlas_cluster" "conn_strings" {
 
 locals {
   effective_mongodb_uri = try(
-    data.mongodbatlas_cluster.conn_strings.connection_strings[0].standard_srv,
+    data.mongodbatlas_advanced_cluster.conn_strings.connection_strings[0].standard_srv,
     ""
   )
 }
