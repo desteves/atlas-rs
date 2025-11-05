@@ -4,11 +4,7 @@ terraform {
   required_providers {
     mongodbatlas = {
       source  = "mongodb/mongodbatlas"
-      version = "~> 1.19" # adjust as needed
-    }
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.0"
+      version = ">= 2.0.1, < 3.0.0" # track latest 2.x
     }
     random = {
       source  = "hashicorp/random"
